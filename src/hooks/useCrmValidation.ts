@@ -7,9 +7,7 @@ export const accountSchema = z.object({
     .min(1, 'Name ist erforderlich')
     .max(100, 'Name darf maximal 100 Zeichen haben')
     .trim(),
-  plan: z.enum(['Basic', 'Enterprise'], {
-    errorMap: () => ({ message: 'Bitte wählen Sie einen Plan' })
-  }),
+  planId: z.string().min(1, 'Bitte wählen Sie einen Plan'),
   firstResponseSlaHours: z.number()
     .min(1, 'SLA muss mindestens 1 Stunde sein')
     .max(168, 'SLA darf maximal 168 Stunden (1 Woche) sein'),
