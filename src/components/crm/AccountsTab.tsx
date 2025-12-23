@@ -248,34 +248,43 @@ export function AccountsTab({
             return (
               <Card 
                 key={account.id} 
-                className="hover:shadow-md transition-shadow cursor-pointer"
+                className="hover:shadow-md transition-shadow cursor-pointer h-full flex flex-col"
                 onClick={() => setSelectedAccountId(account.id)}
               >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1.5">
-                      <CardTitle className="text-lg font-semibold">{account.name}</CardTitle>
-                      {labels.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {labels.map(label => (
-                            <Badge
-                              key={label.id}
-                              variant="secondary"
-                              className="text-xs"
-                              style={{ backgroundColor: label.color, color: 'white' }}
-                            >
-                              {label.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                <CardHeader className="pb-2 flex-shrink-0">
+                  {/* Fixed height header section */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg font-semibold line-clamp-2 min-h-[3.5rem]">
+                        {account.name}
+                      </CardTitle>
                     </div>
-                    <Badge variant={isPremiumPlan(account.planId) ? 'default' : 'secondary'}>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap flex-shrink-0">
                       {getAccountPlanDisplay(account)}
-                    </Badge>
+                    </span>
+                  </div>
+                  {/* Fixed height labels section */}
+                  <div className="h-6 mt-2">
+                    {labels.length > 0 && (
+                      <div className="flex flex-wrap gap-1 overflow-hidden max-h-6">
+                        {labels.slice(0, 3).map(label => (
+                          <Badge
+                            key={label.id}
+                            variant="secondary"
+                            className="text-xs"
+                            style={{ backgroundColor: label.color, color: 'white' }}
+                          >
+                            {label.name}
+                          </Badge>
+                        ))}
+                        {labels.length > 3 && (
+                          <span className="text-xs text-muted-foreground">+{labels.length - 3}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1 flex flex-col justify-end">
                   {/* MRR Display */}
                   <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
                     <div className="text-xs text-muted-foreground mb-1">Monatlicher Umsatz</div>
@@ -284,21 +293,21 @@ export function AccountsTab({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-3 gap-2 text-sm">
                     <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50">
                       <Building2 className="h-4 w-4 text-muted-foreground mb-1" />
                       <span className="font-semibold">{getCompanyCount(account.id)}</span>
-                      <span className="text-xs text-muted-foreground">Unternehmen</span>
+                      <span className="text-xs text-muted-foreground text-center">Unternehmen</span>
                     </div>
                     <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50">
                       <Users className="h-4 w-4 text-muted-foreground mb-1" />
                       <span className="font-semibold">{getContactCount(account.id)}</span>
-                      <span className="text-xs text-muted-foreground">Kontakte</span>
+                      <span className="text-xs text-muted-foreground text-center">Kontakte</span>
                     </div>
                     <div className="flex flex-col items-center p-2 rounded-lg bg-muted/50">
                       <Ticket className="h-4 w-4 text-muted-foreground mb-1" />
                       <span className="font-semibold">{getOpenTicketCount(account.id)}/{getTicketCount(account.id)}</span>
-                      <span className="text-xs text-muted-foreground">Offen/Gesamt</span>
+                      <span className="text-xs text-muted-foreground text-center">Offen/Gesamt</span>
                     </div>
                   </div>
                 </CardContent>
