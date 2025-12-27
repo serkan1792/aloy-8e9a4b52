@@ -12,8 +12,9 @@ import { useTicketFilters } from '@/hooks/useTicketFilters';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { CheckSquare, Square } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 
-const Index = () => {
+export default function Issues() {
   const [tickets, setTickets] = useState<Ticket[]>(initialTickets);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
@@ -155,7 +156,6 @@ const Index = () => {
     deleteView(viewId);
   }, [deleteView]);
 
-  // Bulk actions
   const toggleSelectionMode = useCallback(() => {
     setIsSelectionMode(prev => !prev);
     if (isSelectionMode) {
@@ -179,7 +179,7 @@ const Index = () => {
     const agent = agents.find(a => a.id === assigneeId);
     toast({
       title: 'Zuweisung geändert',
-      description: `${selectedTicketIds.length} Tickets wurden ${agent?.name} zugewiesen.`,
+      description: `${selectedTicketIds.length} Issues wurden ${agent?.name} zugewiesen.`,
     });
     clearSelection();
   }, [selectedTicketIds, toast, clearSelection]);
@@ -194,7 +194,7 @@ const Index = () => {
     );
     toast({
       title: 'Status geändert',
-      description: `${selectedTicketIds.length} Tickets wurden auf "${status}" gesetzt.`,
+      description: `${selectedTicketIds.length} Issues wurden auf "${status}" gesetzt.`,
     });
     clearSelection();
   }, [selectedTicketIds, toast, clearSelection]);
@@ -209,7 +209,7 @@ const Index = () => {
     );
     toast({
       title: 'Priorität geändert',
-      description: `${selectedTicketIds.length} Tickets wurden auf "${priority}" gesetzt.`,
+      description: `${selectedTicketIds.length} Issues wurden auf "${priority}" gesetzt.`,
     });
     clearSelection();
   }, [selectedTicketIds, toast, clearSelection]);
@@ -217,108 +217,109 @@ const Index = () => {
   const handleBulkDelete = useCallback(() => {
     setTickets(prev => prev.filter(t => !selectedTicketIds.includes(t.id)));
     toast({
-      title: 'Tickets gelöscht',
-      description: `${selectedTicketIds.length} Tickets wurden gelöscht.`,
+      title: 'Issues gelöscht',
+      description: `${selectedTicketIds.length} Issues wurden gelöscht.`,
     });
     clearSelection();
   }, [selectedTicketIds, toast, clearSelection]);
 
   return (
-    <div className="flex h-screen bg-background">
-      <AppSidebar />
+    <>
+      <Helmet>
+        <title>Issues - SupportHub</title>
+        <meta name="description" content="Verwalten Sie alle Support-Issues" />
+      </Helmet>
       
-      <main className="flex-1 overflow-hidden">
-        {/* Header */}
-        <header className="h-auto min-h-16 border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between mb-3 gap-4">
-            <div className="flex-shrink-0 flex items-center gap-4">
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">Tickets</h1>
-                <p className="text-sm text-muted-foreground">
-                  {filteredTickets.length} von {tickets.length} Tickets
-                  {(hasActiveFilters || searchQuery) && ' (gefiltert)'}
-                </p>
+      <div className="flex h-screen bg-background">
+        <AppSidebar />
+        
+        <main className="flex-1 overflow-hidden">
+          <header className="h-auto min-h-16 border-b border-border px-6 py-4">
+            <div className="flex items-center justify-between mb-3 gap-4">
+              <div className="flex-shrink-0 flex items-center gap-4">
+                <div>
+                  <h1 className="text-xl font-semibold text-foreground">All Issues</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredTickets.length} von {tickets.length} Issues
+                    {(hasActiveFilters || searchQuery) && ' (gefiltert)'}
+                  </p>
+                </div>
+                <Button
+                  variant={isSelectionMode ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={toggleSelectionMode}
+                  className="h-8"
+                >
+                  {isSelectionMode ? (
+                    <>
+                      <CheckSquare className="h-4 w-4 mr-1" />
+                      Auswahl beenden
+                    </>
+                  ) : (
+                    <>
+                      <Square className="h-4 w-4 mr-1" />
+                      Auswählen
+                    </>
+                  )}
+                </Button>
               </div>
-              <Button
-                variant={isSelectionMode ? "secondary" : "outline"}
-                size="sm"
-                onClick={toggleSelectionMode}
-                className="h-8"
-              >
-                {isSelectionMode ? (
-                  <>
-                    <CheckSquare className="h-4 w-4 mr-1" />
-                    Auswahl beenden
-                  </>
-                ) : (
-                  <>
-                    <Square className="h-4 w-4 mr-1" />
-                    Auswählen
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-3 flex-1 justify-end">
+                <TicketSearch
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  className="w-64"
+                />
+                <SavedViewsManager
+                  savedViews={savedViews}
+                  activeViewId={activeViewId}
+                  hasActiveFilters={hasActiveFilters}
+                  onSaveView={handleSaveView}
+                  onLoadView={loadView}
+                  onDeleteView={handleDeleteView}
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-3 flex-1 justify-end">
-              <TicketSearch
-                value={searchQuery}
-                onChange={setSearchQuery}
-                className="w-64"
-              />
-              <SavedViewsManager
-                savedViews={savedViews}
-                activeViewId={activeViewId}
-                hasActiveFilters={hasActiveFilters}
-                onSaveView={handleSaveView}
-                onLoadView={loadView}
-                onDeleteView={handleDeleteView}
-              />
-            </div>
+            <TicketFilters
+              filters={filters}
+              onUpdateFilter={updateFilter}
+              onResetFilters={resetFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
+          </header>
+
+          <div className="p-6 h-[calc(100vh-9rem)] overflow-hidden">
+            <KanbanBoard 
+              tickets={filteredTickets} 
+              onTicketClick={handleTicketClick} 
+              onTicketMove={handleStatusChange}
+              isSelectable={isSelectionMode}
+              selectedTicketIds={selectedTicketIds}
+              onTicketSelect={handleTicketSelect}
+            />
           </div>
-          <TicketFilters
-            filters={filters}
-            onUpdateFilter={updateFilter}
-            onResetFilters={resetFilters}
-            hasActiveFilters={hasActiveFilters}
-          />
-        </header>
+        </main>
 
-        {/* Kanban Board */}
-        <div className="p-6 h-[calc(100vh-9rem)] overflow-hidden">
-          <KanbanBoard 
-            tickets={filteredTickets} 
-            onTicketClick={handleTicketClick} 
-            onTicketMove={handleStatusChange}
-            isSelectable={isSelectionMode}
-            selectedTicketIds={selectedTicketIds}
-            onTicketSelect={handleTicketSelect}
-          />
-        </div>
-      </main>
+        <TicketDetailSheet
+          ticket={selectedTicket}
+          messages={messages}
+          allTickets={tickets}
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          onStatusChange={handleStatusChange}
+          onSendMessage={handleSendMessage}
+          onSimulateReply={handleSimulateReply}
+          onAssigneeChange={handleAssigneeChange}
+        />
 
-      {/* Ticket Detail Sheet */}
-      <TicketDetailSheet
-        ticket={selectedTicket}
-        messages={messages}
-        allTickets={tickets}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        onStatusChange={handleStatusChange}
-        onSendMessage={handleSendMessage}
-        onSimulateReply={handleSimulateReply}
-        onAssigneeChange={handleAssigneeChange}
-      />
-
-      {/* Bulk Action Bar */}
-      <BulkActionBar
-        selectedCount={selectedTicketIds.length}
-        onClearSelection={clearSelection}
-        onBulkAssign={handleBulkAssign}
-        onBulkStatusChange={handleBulkStatusChange}
-        onBulkPriorityChange={handleBulkPriorityChange}
-        onBulkDelete={handleBulkDelete}
-      />
-    </div>
+        <BulkActionBar
+          selectedCount={selectedTicketIds.length}
+          onClearSelection={clearSelection}
+          onBulkAssign={handleBulkAssign}
+          onBulkStatusChange={handleBulkStatusChange}
+          onBulkPriorityChange={handleBulkPriorityChange}
+          onBulkDelete={handleBulkDelete}
+        />
+      </div>
+    </>
   );
-};
-
-export default Index;
+}
